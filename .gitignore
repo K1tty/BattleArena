@@ -1,0 +1,10 @@
+# Visual Studio generated files
+/.vs
+*.sln
+*.vsconfig
+
+# UE intermediate files
+/Binaries
+/DerivedDataCache
+/Intermediate
+/Saved
