@@ -2,7 +2,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Ball.h"
 #include "Grid.h"
-#include "Simulation.h"
+#include "Simulation/Simulation.h"
 #include "ArenaGameMode.generated.h"
 
 

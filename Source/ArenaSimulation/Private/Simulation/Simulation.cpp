@@ -1,4 +1,4 @@
-#include "Simulation.h"
+#include "Simulation/Simulation.h"
 
 
 FSimulation::FSimulation(uint32_t Seed, uint8_t InSizeX, uint8_t InSizeY)
@@ -65,12 +65,12 @@ FSimulation::EState FSimulation::Step()
 	return HadAliveEnemies ? EState::Running : EState::Finished;
 }
 
-std::optional<FSimulation::TEvent> FSimulation::PopEvent()
+std::optional<TSimulationEvent> FSimulation::PopEvent()
 {
 	if (EventLog.empty())
 		return std::nullopt;
 
-	const TEvent Event = EventLog.front();
+	const TSimulationEvent Event = EventLog.front();
 	EventLog.pop();
 
 	return Event;
@@ -86,7 +86,7 @@ FBall* FSimulation::FindNearestEnemy(const FBall& Source)
 		if (!Enemy.IsAlive() || !Source.IsEnemy(Enemy))
 			continue;
 
-		const float Distance = GetDistanceSquared(Source, Enemy);
+		const float Distance = GetDistanceSquared(Source.Position, Enemy.Position);
 		if (Distance < MinDistance)
 		{
 			MinDistance = Distance;
@@ -105,17 +105,12 @@ float FSimulation::GetDistanceSquared(const FGridCell From, const FGridCell To)
 	return XDiff * XDiff + YDiff * YDiff;
 }
 
-float FSimulation::GetDistanceSquared(const FBall& From, const FBall& To)
-{
-	return GetDistanceSquared(From.Position, To.Position);
-}
-
 bool FSimulation::IsWithinAttackRange(const FBall& Source, const FBall& Target) const
 {
 	const float AttackRadius = 2.0f;
 	const float AttackRadiusSquared = AttackRadius * AttackRadius;
 
-	return GetDistanceSquared(Source, Target) < AttackRadiusSquared;
+	return GetDistanceSquared(Source.Position, Target.Position) < AttackRadiusSquared;
 }
 
 void FSimulation::MoveTo(FBall& Ball, const FBall& Target)
@@ -146,7 +141,7 @@ void FSimulation::Attack(FBall& Source, FBall& Target)
 		AddLogEvent(FDeathEvent{ .Source = Target });
 }
 
-void FSimulation::AddLogEvent(const TEvent& Event)
+void FSimulation::AddLogEvent(const TSimulationEvent& Event)
 {
 	EventLog.push(Event);
 }

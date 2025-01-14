@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "BattleArena",
+			"Name": "ArenaVisualization",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

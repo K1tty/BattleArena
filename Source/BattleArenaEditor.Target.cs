@@ -1,7 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
-using System.Collections.Generic;
 
 public class BattleArenaEditorTarget : TargetRules
 {
@@ -10,6 +7,6 @@ public class BattleArenaEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_4;
-		ExtraModuleNames.Add("BattleArena");
+		ExtraModuleNames.Add("ArenaVisualization");
 	}
 }

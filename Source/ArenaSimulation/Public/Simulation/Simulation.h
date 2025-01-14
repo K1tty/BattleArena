@@ -1,4 +1,4 @@
-#pragma once
+	#pragma once
 #include <vector>
 #include <random>
 #include <variant>
@@ -59,27 +59,27 @@ struct FBall
 
 struct FMoveEvent
 {
-	const FBall& Source;
+	FBall Source;
 	FGridCell From;
 	FGridCell To;
 };
 
 struct FAttackEvent
 {
-	const FBall& Source;
-	const FBall& Target;
+	FBall Source;
+	FBall Target;
 };
 
 struct FDeathEvent
 {
-	const FBall& Source;
+	FBall Source;
 };
 
-class FSimulation
+using TSimulationEvent = std::variant<FMoveEvent, FAttackEvent, FDeathEvent>;
+
+class ARENASIMULATION_API FSimulation
 {
 public:
-	using TEvent = std::variant<FMoveEvent, FAttackEvent, FDeathEvent>;
-
 	enum class EState
 	{
 		Running,
@@ -92,11 +92,10 @@ public:
 	const FBall& AddBall(ETeam Team);
 
 	EState Step();
-	std::optional<TEvent> PopEvent();
+	std::optional<TSimulationEvent> PopEvent();
 
 private:
 	static float GetDistanceSquared(const FGridCell From, const FGridCell To);
-	static float GetDistanceSquared(const FBall& From, const FBall& To);
 
 	FBall* FindNearestEnemy(const FBall& Source);
 	bool IsWithinAttackRange(const FBall& Source, const FBall& Target) const;
@@ -104,12 +103,12 @@ private:
 	void MoveTo(FBall& Ball, const FBall& Target);
 	void Attack(FBall& Source, FBall& Target);
 
-	void AddLogEvent(const TEvent& Event);
+	void AddLogEvent(const TSimulationEvent& Event);
 	
 private:
 	std::mt19937 RandomGenerator;
 	uint8_t SizeX;
 	uint8_t SizeY;
 	std::vector<FBall> Balls;
-	std::queue<TEvent> EventLog;
+	std::queue<TSimulationEvent> EventLog;
 };
