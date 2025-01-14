@@ -1,4 +1,5 @@
 #include "ArenaGameMode.h"
+#include "Module/ArenaSimulationModule.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSimulation, Log, All);
 
@@ -28,7 +29,7 @@ void AArenaGameMode::InitSimulation()
 	const uint32 Seed = GFrameNumber;
 	const uint8 GridSize = 20;
 
-	Simulation = MakeUnique<FSimulation>(Seed, GridSize, GridSize);
+	Simulation = FArenaSimulationModule::Get().CreateSimulation(Seed, GridSize, GridSize);
 
 	SpawnGrid(GridSize, GridSize);
 }
@@ -37,7 +38,7 @@ void AArenaGameMode::TickSimulation()
 {
 	UE_LOG(LogSimulation, Log, TEXT("Tick"));
 
-	if (Simulation->Step() == FSimulation::EState::Running)
+	if (Simulation->Step() == ESimulationState::Running)
 	{
 		while (auto Event = Simulation->PopEvent())
 		{
@@ -89,7 +90,7 @@ void AArenaGameMode::ExecuteSpawn(const FSpawnEvent& Event)
 	const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	ABall* Actor = GetWorld()->SpawnActor<ABall>(BallClass, SpawnLocation, SpawnRotation, SpawnParams);
-	Actor->SetColor(Event.Team == ETeam::Red);
+	Actor->SetColor(Event.Team == ESimulationTeam::Red);
 	Actor->SetHealthPercent(Event.Health);
 
 	Balls.Add(Event.SourceId, Actor);

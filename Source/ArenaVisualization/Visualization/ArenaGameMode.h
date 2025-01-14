@@ -2,7 +2,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Ball.h"
 #include "Grid.h"
-#include "Simulation/Simulation.h"
+#include "Simulation/ISimulation.h"
 #include "ArenaGameMode.generated.h"
 
 
@@ -29,7 +29,7 @@ private:
 	void ExecuteDeath(const FDeathEvent& Event);
 	
 private:
-	TUniquePtr<FSimulation> Simulation;
+	TUniquePtr<ISimulation> Simulation;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AGrid> GridClass;

@@ -6,23 +6,23 @@ FSimulation::FSimulation(uint32_t Seed, uint8_t InSizeX, uint8_t InSizeY)
 	, SizeX(InSizeX)
 	, SizeY(InSizeY)
 {
-	SpawnBall(ETeam::Red);
-	SpawnBall(ETeam::Blue);
+	SpawnBall(ESimulationTeam::Red);
+	SpawnBall(ESimulationTeam::Blue);
 }
 
-FSimulation::EState FSimulation::Step()
+ESimulationState FSimulation::Step()
 {
 	bool HadAliveEnemies = false;
 
 	// TODO: O(N^2) complexity. Requires optimization if we have many balls
-	for (FBall& Ball : Balls)
+	for (FSimulationBall& Ball : Balls)
 	{
 		Ball.TickAttackCooldown();
 
 		if (!Ball.IsAlive())
 			continue;
 
-		FBall* Enemy = FindNearestEnemy(Ball);
+		FSimulationBall* Enemy = FindNearestEnemy(Ball);
 		if (!Enemy)
 			continue;
 
@@ -39,7 +39,7 @@ FSimulation::EState FSimulation::Step()
 		}
 	};
 
-	return HadAliveEnemies ? EState::Running : EState::Finished;
+	return HadAliveEnemies ? ESimulationState::Running : ESimulationState::Finished;
 }
 
 std::optional<TSimulationEvent> FSimulation::PopEvent()
@@ -53,12 +53,12 @@ std::optional<TSimulationEvent> FSimulation::PopEvent()
 	return Event;
 }
 
-FBall* FSimulation::FindNearestEnemy(const FBall& Source)
+FSimulationBall* FSimulation::FindNearestEnemy(const FSimulationBall& Source)
 {
-	FBall* NearestEnemy = nullptr;
+	FSimulationBall* NearestEnemy = nullptr;
 	float MinDistance = std::numeric_limits<float>::max();
 
-	for (FBall& Enemy : Balls)
+	for (FSimulationBall& Enemy : Balls)
 	{
 		if (!Enemy.IsAlive() || !Source.IsEnemy(Enemy))
 			continue;
@@ -74,7 +74,7 @@ FBall* FSimulation::FindNearestEnemy(const FBall& Source)
 	return NearestEnemy;
 }
 
-float FSimulation::GetDistanceSquared(const FGridCell From, const FGridCell To)
+float FSimulation::GetDistanceSquared(const FSimulationCell From, const FSimulationCell To)
 {
 	const float XDiff = static_cast<float>(To.X - From.X);
 	const float YDiff = static_cast<float>(To.Y - From.Y);
@@ -82,7 +82,7 @@ float FSimulation::GetDistanceSquared(const FGridCell From, const FGridCell To)
 	return XDiff * XDiff + YDiff * YDiff;
 }
 
-bool FSimulation::IsWithinAttackRange(const FBall& Source, const FBall& Target) const
+bool FSimulation::IsWithinAttackRange(const FSimulationBall& Source, const FSimulationBall& Target) const
 {
 	const float AttackRadius = 2.0f;
 	const float AttackRadiusSquared = AttackRadius * AttackRadius;
@@ -90,19 +90,19 @@ bool FSimulation::IsWithinAttackRange(const FBall& Source, const FBall& Target) 
 	return GetDistanceSquared(Source.Position, Target.Position) < AttackRadiusSquared;
 }
 
-void FSimulation::SpawnBall(ETeam Team)
+void FSimulation::SpawnBall(ESimulationTeam Team)
 {
 	std::uniform_int_distribution<> XDistribution(0, SizeX - 1);
 	std::uniform_int_distribution<> YDistribution(0, SizeY - 1);
-	std::uniform_int_distribution<> HealthDistribution(FBall::MinHealth, FBall::MaxHealth);
+	std::uniform_int_distribution<> HealthDistribution(FSimulationBall::MinHealth, FSimulationBall::MaxHealth);
 
-	const FGridCell RandomPosition
+	const FSimulationCell RandomPosition
 	{
 		 .X = static_cast<uint8_t>(XDistribution(RandomGenerator)),
 		 .Y = static_cast<uint8_t>(YDistribution(RandomGenerator))
 	};
 
-	const FBall Ball
+	const FSimulationBall Ball
 	{
 		.Id = static_cast<TBallId>(Balls.size()),
 		.Position = RandomPosition,
@@ -115,27 +115,27 @@ void FSimulation::SpawnBall(ETeam Team)
 	AddLogEvent(FSpawnEvent{ .SourceId = Ball.Id, .Position = Ball.Position, .Health = Ball.GetHealthPercent(), .Team = Ball.Team });
 }
 
-void FSimulation::MoveTo(FBall& Ball, const FBall& Target)
+void FSimulation::MoveTo(FSimulationBall& Ball, const FSimulationBall& Target)
 {
 	const int8_t XDiff = std::clamp(Target.Position.X - Ball.Position.X, -1, 1);
 	const int8_t YDiff = std::clamp(Target.Position.Y - Ball.Position.Y, -1, 1);
 
-	const FGridCell Choice1 = FGridCell{ .X = static_cast<uint8_t>(Ball.Position.X + XDiff), .Y = Ball.Position.Y };
-	const FGridCell Choice2 = FGridCell{ .X = Ball.Position.X, .Y = static_cast<uint8_t>(Ball.Position.Y + YDiff) };
+	const FSimulationCell Choice1 = FSimulationCell{ .X = static_cast<uint8_t>(Ball.Position.X + XDiff), .Y = Ball.Position.Y };
+	const FSimulationCell Choice2 = FSimulationCell{ .X = Ball.Position.X, .Y = static_cast<uint8_t>(Ball.Position.Y + YDiff) };
 
 	const float Distance1 = GetDistanceSquared(Choice1, Target.Position);
 	const float Distance2 = GetDistanceSquared(Choice2, Target.Position);
 
-	const FGridCell& NextPosition = (Distance1 < Distance2) ? Choice1 : Choice2;
+	const FSimulationCell& NextPosition = (Distance1 < Distance2) ? Choice1 : Choice2;
 
 	AddLogEvent(FMoveEvent{ .SourceId = Ball.Id, .From = Ball.Position, .To = NextPosition });
 	Ball.Position = NextPosition;
 }
 
-void FSimulation::Attack(FBall& Source, FBall& Target)
+void FSimulation::Attack(FSimulationBall& Source, FSimulationBall& Target)
 {
-	Source.AttackCooldownCounter = FBall::AttackCooldown;
-	Target.Health -= 1;
+	Source.StartAttackCooldown();
+	Target.ApplyAttackDamage();
 
 	AddLogEvent(FAttackEvent{ .SourceId = Source.Id, .TargetId = Target.Id, .TargetHealth = Target.GetHealthPercent() });
 
