@@ -22,7 +22,7 @@ struct FBall
 {
 	static const uint8_t AttackCooldown = 3;
 
-	size_t Id;
+	int Id;
 	FGridCell Position;
 	uint8_t Health;
 	uint8_t AttackCooldownCounter;
@@ -82,7 +82,7 @@ public:
 public:
 	FSimulation(uint32_t Seed, uint8_t SizeX, uint8_t SizeY);
 
-	void AddBall(ETeam Team	);
+	const FBall& AddBall(ETeam Team);
 	
 	EState Step();
 	std::optional<TEvent> PopEvent();
@@ -101,7 +101,6 @@ private:
 	
 private:
 	std::mt19937 RandomGenerator;
-	size_t IdCounter = 0;
 	uint8_t SizeX;
 	uint8_t SizeY;
 	std::vector<FBall> Balls;

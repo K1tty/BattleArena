@@ -6,34 +6,31 @@ FSimulation::FSimulation(uint32_t Seed, uint8_t InSizeX, uint8_t InSizeY)
 	, SizeX(InSizeX)
 	, SizeY(InSizeY)
 {
-	const int BallsPerTeam = 1;
-	for (int i = 0; i < BallsPerTeam; ++i)
-	{
-		AddBall(ETeam::Red);
-		AddBall(ETeam::Blue);
-	}
 }
 
-void FSimulation::AddBall(ETeam Team)
+const FBall& FSimulation::AddBall(ETeam Team)
 {
-	std::uniform_int_distribution<> PositionDistribution(0, 100);
+	std::uniform_int_distribution<> XDistribution(0, SizeX);
+	std::uniform_int_distribution<> YDistribution(0, SizeY);
 	std::uniform_int_distribution<> HealthDistribution(2, 5);
 
 	const FGridCell RandomPosition
 	{
-		 .X = static_cast<uint8_t>(PositionDistribution(RandomGenerator)),
-		 .Y = static_cast<uint8_t>(PositionDistribution(RandomGenerator))
+		 .X = static_cast<uint8_t>(XDistribution(RandomGenerator)),
+		 .Y = static_cast<uint8_t>(YDistribution(RandomGenerator))
 	};
 
 	const FBall Ball
 	{
-		.Id = IdCounter++,
+		.Id = static_cast<int>(Balls.size()),
 		.Position = RandomPosition,
 		.Health = static_cast<uint8_t>(HealthDistribution(RandomGenerator)),
 		.Team = Team
 	};
 
 	Balls.push_back(Ball);
+
+	return Balls.back();
 }
 
 FSimulation::EState FSimulation::Step()
@@ -103,7 +100,7 @@ FBall* FSimulation::FindNearestEnemy(const FBall& Source)
 float FSimulation::GetDistanceSquared(const FGridCell From, const FGridCell To)
 {
 	const float XDiff = static_cast<float>(To.X - From.X);
-	const float YDiff = static_cast<float>(To.X - From.X);
+	const float YDiff = static_cast<float>(To.Y - From.Y);
 
 	return XDiff * XDiff + YDiff * YDiff;
 }
