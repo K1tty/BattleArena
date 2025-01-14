@@ -10,9 +10,9 @@ FSimulation::FSimulation(uint32_t Seed, uint8_t InSizeX, uint8_t InSizeY)
 
 const FBall& FSimulation::AddBall(ETeam Team)
 {
-	std::uniform_int_distribution<> XDistribution(0, SizeX);
-	std::uniform_int_distribution<> YDistribution(0, SizeY);
-	std::uniform_int_distribution<> HealthDistribution(2, 5);
+	std::uniform_int_distribution<> XDistribution(0, SizeX - 1);
+	std::uniform_int_distribution<> YDistribution(0, SizeY - 1);
+	std::uniform_int_distribution<> HealthDistribution(FBall::MinHealth, FBall::MaxHealth);
 
 	const FGridCell RandomPosition
 	{

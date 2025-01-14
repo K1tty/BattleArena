@@ -88,6 +88,8 @@ void AArenaGameMode::SpawnBall(ETeam Team)
 
 	ABall* Actor = GetWorld()->SpawnActor<ABall>(BallClass, SpawnLocation, SpawnRotation, SpawnParams);
 	Actor->SetColor(Team == ETeam::Red);
+	Actor->SetHealthPercent(Ball.GetHealthPercent());
+
 	Balls.Add(Ball.Id, Actor);
 }
 
@@ -106,11 +108,11 @@ void AArenaGameMode::ExecuteAttack(const FAttackEvent& Event)
 {
 	UE_LOG(LogSimulation, Log, TEXT("%u: Attack %u"), Event.Source.Id, Event.Target.Id);
 
-	TObjectPtr<ABall> SourceBall = Balls[Event.Source.Id];
-	SourceBall->PlayAttackEffect();
-
 	TObjectPtr<ABall> TargetBall = Balls[Event.Target.Id];
-	TargetBall->PlayDamageEffect();
+	TObjectPtr<ABall> SourceBall = Balls[Event.Source.Id];
+
+	SourceBall->PlayAttackEffect(TargetBall);
+	TargetBall->PlayDamageEffect(Event.Target.GetHealthPercent());
 }
 
 void AArenaGameMode::ExecuteDeath(const FDeathEvent& Event)

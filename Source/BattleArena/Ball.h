@@ -12,13 +12,16 @@ public:
 	void SetColor(bool Red);
 
 	UFUNCTION(BlueprintImplementableEvent)
+	void SetHealthPercent(float HealthPercent);
+
+	UFUNCTION(BlueprintImplementableEvent)
 	void PlayMoveToEffect(const FVector& From, const FVector& To);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayDamageEffect();
+	void PlayDamageEffect(float HealthPercent);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayAttackEffect();
+	void PlayAttackEffect(const AActor* Target);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayDeathEffect();

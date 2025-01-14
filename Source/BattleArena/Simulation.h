@@ -21,6 +21,8 @@ struct FGridCell
 struct FBall
 {
 	static const uint8_t AttackCooldown = 3;
+	static const uint8_t MaxHealth = 5;
+	static const uint8_t MinHealth = 2;
 
 	int Id;
 	FGridCell Position;
@@ -47,6 +49,11 @@ struct FBall
 	{
 		if (IsAttackCooldown())
 			--AttackCooldownCounter;
+	}
+
+	float GetHealthPercent() const
+	{
+		return static_cast<float>(Health) / MaxHealth;
 	}
 };
 
@@ -83,7 +90,7 @@ public:
 	FSimulation(uint32_t Seed, uint8_t SizeX, uint8_t SizeY);
 
 	const FBall& AddBall(ETeam Team);
-	
+
 	EState Step();
 	std::optional<TEvent> PopEvent();
 
