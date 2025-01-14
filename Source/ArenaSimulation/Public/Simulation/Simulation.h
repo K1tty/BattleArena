@@ -18,13 +18,15 @@ struct FGridCell
 	uint8_t Y;
 };
 
+using TBallId = uint32_t;
+
 struct FBall
 {
 	static const uint8_t AttackCooldown = 3;
 	static const uint8_t MaxHealth = 5;
 	static const uint8_t MinHealth = 2;
 
-	int Id;
+	TBallId Id;
 	FGridCell Position;
 	uint8_t Health;
 	uint8_t AttackCooldownCounter;
@@ -57,25 +59,34 @@ struct FBall
 	}
 };
 
+struct FSpawnEvent
+{
+	TBallId SourceId;
+	FGridCell Position;
+	float Health;
+	ETeam Team;
+};
+
 struct FMoveEvent
 {
-	FBall Source;
+	TBallId SourceId;
 	FGridCell From;
 	FGridCell To;
 };
 
 struct FAttackEvent
 {
-	FBall Source;
-	FBall Target;
+	TBallId SourceId;
+	TBallId TargetId;
+	float TargetHealth; // in [0, 1] range
 };
 
 struct FDeathEvent
 {
-	FBall Source;
+	TBallId SourceId;
 };
 
-using TSimulationEvent = std::variant<FMoveEvent, FAttackEvent, FDeathEvent>;
+using TSimulationEvent = std::variant<FSpawnEvent, FMoveEvent, FAttackEvent, FDeathEvent>;
 
 class ARENASIMULATION_API FSimulation
 {
@@ -89,8 +100,6 @@ public:
 public:
 	FSimulation(uint32_t Seed, uint8_t SizeX, uint8_t SizeY);
 
-	const FBall& AddBall(ETeam Team);
-
 	EState Step();
 	std::optional<TSimulationEvent> PopEvent();
 
@@ -100,6 +109,7 @@ private:
 	FBall* FindNearestEnemy(const FBall& Source);
 	bool IsWithinAttackRange(const FBall& Source, const FBall& Target) const;
 
+	void SpawnBall(ETeam Team);
 	void MoveTo(FBall& Ball, const FBall& Target);
 	void Attack(FBall& Source, FBall& Target);
 

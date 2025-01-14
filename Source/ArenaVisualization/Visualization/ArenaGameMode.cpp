@@ -31,9 +31,6 @@ void AArenaGameMode::InitSimulation()
 	Simulation = MakeUnique<FSimulation>(Seed, GridSize, GridSize);
 
 	SpawnGrid(GridSize, GridSize);
-
-	SpawnBall(ETeam::Red);
-	SpawnBall(ETeam::Blue);
 }
 
 void AArenaGameMode::TickSimulation()
@@ -44,7 +41,12 @@ void AArenaGameMode::TickSimulation()
 	{
 		while (auto Event = Simulation->PopEvent())
 		{
-			if (std::holds_alternative<FMoveEvent>(Event.value()))
+			if (std::holds_alternative<FSpawnEvent>(Event.value()))
+			{
+				const FSpawnEvent& e = std::get<FSpawnEvent>(Event.value());
+				ExecuteSpawn(e);
+			}
+			else if (std::holds_alternative<FMoveEvent>(Event.value()))
 			{
 				const FMoveEvent& e = std::get<FMoveEvent>(Event.value());
 				ExecuteMove(e);
@@ -76,49 +78,49 @@ void AArenaGameMode::SpawnGrid(uint8 SizeX, uint8 SizeY)
 	Grid->SetGridSize(SizeX, SizeY);
 }
 
-void AArenaGameMode::SpawnBall(ETeam Team)
+void AArenaGameMode::ExecuteSpawn(const FSpawnEvent& Event)
 {
-	const FBall& Ball = Simulation->AddBall(Team);
+	UE_LOG(LogSimulation, Log, TEXT("%u: Spawn"), Event.SourceId);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 
-	const FVector SpawnLocation = Grid->GridToWorld(Ball.Position.X, Ball.Position.Y);
+	const FVector SpawnLocation = Grid->GridToWorld(Event.Position.X, Event.Position.Y);
 	const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	ABall* Actor = GetWorld()->SpawnActor<ABall>(BallClass, SpawnLocation, SpawnRotation, SpawnParams);
-	Actor->SetColor(Team == ETeam::Red);
-	Actor->SetHealthPercent(Ball.GetHealthPercent());
+	Actor->SetColor(Event.Team == ETeam::Red);
+	Actor->SetHealthPercent(Event.Health);
 
-	Balls.Add(Ball.Id, Actor);
+	Balls.Add(Event.SourceId, Actor);
 }
 
 void AArenaGameMode::ExecuteMove(const FMoveEvent& Event)
 {
-	UE_LOG(LogSimulation, Log, TEXT("%u: Move (%i,%i) -> (%i,%i)"), Event.Source.Id, Event.From.X, Event.From.Y, Event.To.X, Event.To.Y);
+	UE_LOG(LogSimulation, Log, TEXT("%u: Move (%i,%i) -> (%i,%i)"), Event.SourceId, Event.From.X, Event.From.Y, Event.To.X, Event.To.Y);
 
 	const FVector From = Grid->GridToWorld(Event.From.X, Event.From.Y);
 	const FVector To = Grid->GridToWorld(Event.To.X, Event.To.Y);
 
-	TObjectPtr<ABall> SourceBall = Balls[Event.Source.Id];
+	TObjectPtr<ABall> SourceBall = Balls[Event.SourceId];
 	SourceBall->PlayMoveToEffect(From, To);
 }
 
 void AArenaGameMode::ExecuteAttack(const FAttackEvent& Event)
 {
-	UE_LOG(LogSimulation, Log, TEXT("%u: Attack %u"), Event.Source.Id, Event.Target.Id);
+	UE_LOG(LogSimulation, Log, TEXT("%u: Attack %u"), Event.SourceId, Event.TargetId);
 
-	TObjectPtr<ABall> TargetBall = Balls[Event.Target.Id];
-	TObjectPtr<ABall> SourceBall = Balls[Event.Source.Id];
+	TObjectPtr<ABall> TargetBall = Balls[Event.TargetId];
+	TObjectPtr<ABall> SourceBall = Balls[Event.SourceId];
 
 	SourceBall->PlayAttackEffect(TargetBall);
-	TargetBall->PlayDamageEffect(Event.Target.GetHealthPercent());
+	TargetBall->PlayDamageEffect(Event.TargetHealth);
 }
 
 void AArenaGameMode::ExecuteDeath(const FDeathEvent& Event)
 {
-	UE_LOG(LogSimulation, Log, TEXT("%u: Death"), Event.Source.Id);
+	UE_LOG(LogSimulation, Log, TEXT("%u: Death"), Event.SourceId);
 	
-	TObjectPtr<ABall> SourceBall = Balls[Event.Source.Id];
+	TObjectPtr<ABall> SourceBall = Balls[Event.SourceId];
 	SourceBall->PlayDeathEffect();
 }

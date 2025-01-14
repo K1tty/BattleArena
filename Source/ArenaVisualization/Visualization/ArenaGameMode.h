@@ -22,8 +22,8 @@ private:
 	void TickSimulation();
 
 	void SpawnGrid(uint8 SizeX, uint8 SizeY);
-	void SpawnBall(ETeam Team);
 
+	void ExecuteSpawn(const FSpawnEvent& Event);
 	void ExecuteMove(const FMoveEvent& Event);
 	void ExecuteAttack(const FAttackEvent& Event);
 	void ExecuteDeath(const FDeathEvent& Event);
@@ -36,10 +36,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABall> BallClass;
-
+	
 	UPROPERTY()
 	TObjectPtr<AGrid> Grid;
 
 	UPROPERTY()
-	TMap<int, ABall*> Balls;
+	TMap<uint32, ABall*> Balls;
 };
