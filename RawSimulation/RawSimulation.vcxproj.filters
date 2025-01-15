@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\Simulation.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\SimulationBall.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\Simulation.h">
+      <Filter>Private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\SimulationBall.h">
+      <Filter>Private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ArenaSimulation\Public\Simulation\ISimulation.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ArenaSimulation\Public\Simulation\SimulationEvents.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ArenaSimulation\Public\Simulation\SimulationTypes.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Private">
+      <UniqueIdentifier>{2ca58f66-0346-4b08-b6bc-8ac3c7df8b6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public">
+      <UniqueIdentifier>{33cc6da5-f94a-4c6e-82c1-9284592a3611}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

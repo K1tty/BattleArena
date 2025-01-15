@@ -1,0 +1,8 @@
+# Visual Studio generated files
+*.*
+!*.sln
+!*.vcxproj
+!*.vcxproj.filters
+!*.h
+!*.cpp
+!.gitignore
