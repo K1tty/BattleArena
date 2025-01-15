@@ -4,9 +4,9 @@
 FSimulationBall::FSimulationBall(TBallId InId, ESimulationTeam InTeam, FSimulationCell InPosition, uint8_t InHealth)
 	: Id(InId)
 	, Team(InTeam)
-	, Position(InPosition)
 	, Health(InHealth)
 	, AttackCooldownCounter(0)
+	, Position(InPosition)
 {
 }
 

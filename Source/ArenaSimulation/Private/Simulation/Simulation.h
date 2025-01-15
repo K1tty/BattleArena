@@ -5,6 +5,7 @@
 #include <queue>
 #include "Simulation/ISimulation.h"
 #include "SimulationBall.h"
+#include "AStarPathFinder.h"
 
 
 class FSimulation: public ISimulation
@@ -24,11 +25,13 @@ private:
 	void SpawnBall(ESimulationTeam Team);
 	void MoveTo(FSimulationBall& Ball, const FSimulationBall& Target);
 	void Attack(FSimulationBall& Source, FSimulationBall& Target);
+	void Death(FSimulationBall& Ball);
 
 	void AddLogEvent(const TSimulationEvent& Event);
 	
 private:
 	std::mt19937 RandomGenerator;
+	AStarPathFinder PathFinder;
 	uint8_t SizeX;
 	uint8_t SizeY;
 	std::vector<FSimulationBall> Balls;

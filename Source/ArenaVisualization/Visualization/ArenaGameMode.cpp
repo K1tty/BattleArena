@@ -27,11 +27,12 @@ void AArenaGameMode::BeginPlay()
 void AArenaGameMode::InitSimulation()
 {
 	const uint32 Seed = GFrameNumber;
-	const uint8 GridSize = 20;
+	const uint8 GridSizeX = 20;
+	const uint8 GridSizeY = 20;
 
-	Simulation = FArenaSimulationModule::Get().CreateSimulation(Seed, GridSize, GridSize);
+	Simulation = FArenaSimulationModule::Get().CreateSimulation(Seed, GridSizeX, GridSizeY);
 
-	SpawnGrid(GridSize, GridSize);
+	SpawnGrid(GridSizeX, GridSizeY);
 }
 
 void AArenaGameMode::TickSimulation()

@@ -136,11 +136,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\AStarPathFinder.cpp" />
     <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\Simulation.cpp" />
     <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\SimulationBall.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\AStarPathFinder.h" />
     <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\Simulation.h" />
     <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\SimulationBall.h" />
     <ClInclude Include="..\Source\ArenaSimulation\Public\Simulation\ISimulation.h" />

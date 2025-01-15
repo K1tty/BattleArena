@@ -3,11 +3,17 @@
 
 FSimulation::FSimulation(uint32_t Seed, uint8_t InSizeX, uint8_t InSizeY)
 	: RandomGenerator(Seed)
+	, PathFinder(InSizeX, InSizeY)
 	, SizeX(InSizeX)
 	, SizeY(InSizeY)
 {
-	SpawnBall(ESimulationTeam::Red);
-	SpawnBall(ESimulationTeam::Blue);
+	const int TeamSize = 25;
+
+	for (int i = 0; i < TeamSize; ++i)
+	{
+		SpawnBall(ESimulationTeam::Red);
+		SpawnBall(ESimulationTeam::Blue);
+	}
 }
 
 ESimulationState FSimulation::Step()
@@ -95,37 +101,47 @@ void FSimulation::SpawnBall(ESimulationTeam Team)
 	std::uniform_int_distribution<> XDistribution(0, SizeX - 1);
 	std::uniform_int_distribution<> YDistribution(0, SizeY - 1);
 
-	const FSimulationCell RandomPosition
+	int RetriesLeft = 5;
+	while (RetriesLeft-- > 0)  // TODO: Too hacky for production code. Need more robust solution
 	{
-		 .X = static_cast<uint8_t>(XDistribution(RandomGenerator)),
-		 .Y = static_cast<uint8_t>(YDistribution(RandomGenerator))
-	};
+		const FSimulationCell RandomPosition
+		{
+			 .X = static_cast<uint8_t>(XDistribution(RandomGenerator)),
+			 .Y = static_cast<uint8_t>(YDistribution(RandomGenerator))
+		};
 
-	std::uniform_int_distribution<> HealthDistribution(FSimulationBall::MinHealth, FSimulationBall::MaxHealth);
-	const uint8_t RandomHealth = static_cast<uint8_t>(HealthDistribution(RandomGenerator));
+		if (PathFinder.HasObstacle(RandomPosition))
+			continue;
 
-	const FSimulationBall Ball(static_cast<TBallId>(Balls.size()), Team, RandomPosition, RandomHealth);
+		std::uniform_int_distribution<> HealthDistribution(FSimulationBall::MinHealth, FSimulationBall::MaxHealth);
+		const uint8_t RandomHealth = static_cast<uint8_t>(HealthDistribution(RandomGenerator));
 
-	Balls.push_back(Ball);
+		const FSimulationBall Ball(static_cast<TBallId>(Balls.size()), Team, RandomPosition, RandomHealth);
+		PathFinder.SetObstacle(RandomPosition);
 
-	AddLogEvent(FSpawnEvent{ .SourceId = Ball.GetId(), .Position = Ball.GetPosition(), .Health = Ball.GetHealthPercent(), .Team = Ball.GetTeam() });
+		Balls.push_back(Ball);
+
+		AddLogEvent(FSpawnEvent{ .SourceId = Ball.GetId(), .Position = Ball.GetPosition(), .Health = Ball.GetHealthPercent(), .Team = Ball.GetTeam() });
+
+		break;
+	}
 }
 
 void FSimulation::MoveTo(FSimulationBall& Ball, const FSimulationBall& Target)
 {
-	const int8_t XDiff = std::clamp(Target.GetPosition().X - Ball.GetPosition().X, -1, 1);
-	const int8_t YDiff = std::clamp(Target.GetPosition().Y - Ball.GetPosition().Y, -1, 1);
+	const std::vector<FSimulationCell> Path = PathFinder.FindPath(Ball.GetPosition(), Target.GetPosition());
+	if (!Path.empty())
+	{
+		const FSimulationCell& OldPosition = Ball.GetPosition();
+		const FSimulationCell& NewPosition = Path.front();
 
-	const FSimulationCell Choice1 = FSimulationCell{ .X = static_cast<uint8_t>(Ball.GetPosition().X + XDiff), .Y = Ball.GetPosition().Y };
-	const FSimulationCell Choice2 = FSimulationCell{ .X = Ball.GetPosition().X, .Y = static_cast<uint8_t>(Ball.GetPosition().Y + YDiff) };
+		Ball.SetPosition(NewPosition);
 
-	const float Distance1 = GetDistanceSquared(Choice1, Target.GetPosition());
-	const float Distance2 = GetDistanceSquared(Choice2, Target.GetPosition());
+		PathFinder.ClearObstacle(OldPosition);
+		PathFinder.SetObstacle(NewPosition);
 
-	const FSimulationCell& NextPosition = (Distance1 < Distance2) ? Choice1 : Choice2;
-
-	AddLogEvent(FMoveEvent{ .SourceId = Ball.GetId(), .From = Ball.GetPosition(), .To = NextPosition });
-	Ball.SetPosition(NextPosition);
+		AddLogEvent(FMoveEvent{ .SourceId = Ball.GetId(), .From = OldPosition, .To = NewPosition });
+	}
 }
 
 void FSimulation::Attack(FSimulationBall& Source, FSimulationBall& Target)
@@ -136,7 +152,13 @@ void FSimulation::Attack(FSimulationBall& Source, FSimulationBall& Target)
 	AddLogEvent(FAttackEvent{ .SourceId = Source.GetId(), .TargetId = Target.GetId(), .TargetHealth = Target.GetHealthPercent() });
 
 	if (!Target.IsAlive())
-		AddLogEvent(FDeathEvent{ .SourceId = Target.GetId() });
+		Death(Target);
+}
+
+void FSimulation::Death(FSimulationBall& Ball)
+{
+	AddLogEvent(FDeathEvent{ .SourceId = Ball.GetId() });
+	PathFinder.ClearObstacle(Ball.GetPosition());
 }
 
 void FSimulation::AddLogEvent(const TSimulationEvent& Event)

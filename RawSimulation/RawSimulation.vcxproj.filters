@@ -8,6 +8,9 @@
       <Filter>Private</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\Source\ArenaSimulation\Private\Simulation\AStarPathFinder.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\Simulation.h">
@@ -24,6 +27,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\ArenaSimulation\Public\Simulation\SimulationTypes.h">
       <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ArenaSimulation\Private\Simulation\AStarPathFinder.h">
+      <Filter>Private</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
