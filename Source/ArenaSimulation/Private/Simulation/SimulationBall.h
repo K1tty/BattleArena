@@ -2,25 +2,35 @@
 #include "Simulation/SimulationTypes.h"
 
 
-struct FSimulationBall
+class FSimulationBall
 {
+public:
 	static const uint8_t AttackCooldown = 3;
 	static const uint8_t MaxHealth = 5;
 	static const uint8_t MinHealth = 2;
 
-	TBallId Id;
-	FSimulationCell Position;
-	uint8_t Health;
-	uint8_t AttackCooldownCounter;
-	ESimulationTeam Team;
+public:
+	FSimulationBall(TBallId Id, ESimulationTeam Team, FSimulationCell Position, uint8_t Health);
+
+	TBallId GetId() const;
+	ESimulationTeam GetTeam() const;
+	FSimulationCell GetPosition() const;
+	void SetPosition(FSimulationCell Position);
+	float GetHealthPercent() const;
 
 	bool IsAlive() const;
+	bool IsAttackCooldown() const;
 	bool IsEnemy(const FSimulationBall& Ball) const;
 
-	bool IsAttackCooldown() const;
 	void StartAttackCooldown();
 	void TickAttackCooldown();
 	void ApplyAttackDamage();
 
-	float GetHealthPercent() const;
+private:
+	const TBallId Id;
+	const ESimulationTeam Team;
+
+	uint8_t Health;
+	uint8_t AttackCooldownCounter;
+	FSimulationCell Position;
 };
